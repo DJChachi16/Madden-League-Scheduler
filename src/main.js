@@ -1,7 +1,19 @@
 import "./style.css";
 import { DiscordSDK } from "@discord/embedded-app-sdk";
+import { createClient } from "@supabase/supabase-js";
 
-const clientId = import.meta.env.VITE_DISCORD_CLIENT_ID || "1546241968214909070";
+const clientId =
+  import.meta.env.VITE_DISCORD_CLIENT_ID || "1546241968214909070";
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabasePublishableKey =
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+const supabase = createClient(
+  supabaseUrl,
+  supabasePublishableKey
+);
+
 let discordSdk = null;
 
 const state = {
