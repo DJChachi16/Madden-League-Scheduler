@@ -28,12 +28,17 @@ export default async function handler(req, res) {
 
     const tokenData = await tokenResponse.json();
 
-    if (!tokenResponse.ok) {
-      console.error("Discord token exchange failed:", tokenData);
-      return res.status(tokenResponse.status).json({
-        error: "Discord token exchange failed",
-      });
-    }
+   if (!tokenResponse.ok) {
+  console.error("Discord token exchange failed:", tokenData);
+
+  return res.status(tokenResponse.status).json({
+    error: "Discord token exchange failed",
+    details:
+      tokenData.error_description ||
+      tokenData.error ||
+      "Discord did not provide an error description",
+  });
+}
 
     return res.status(200).json({
       access_token: tokenData.access_token,
