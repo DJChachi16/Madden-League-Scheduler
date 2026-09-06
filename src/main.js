@@ -204,19 +204,65 @@ function setMessage(text) {
 
 async function initDiscord() {
   const pill = document.querySelector("#discord-pill");
+
   if (!clientId) {
     pill.textContent = "Browser Preview";
     return;
   }
 
   try {
+    // Start Discord SDK
     discordSdk = new DiscordSDK(clientId);
     await discordSdk.ready();
-    pill.textContent = "✓ Running in Discord";
+
+    // Ask Discord for permission to identify the user
+    const { code } = await discordSdk.commands.authorize({
+      client_id: clientId,
+      response_type: "code",
+      state: "",
+      prompt: "none",
+      scope: ["identify"],
+    });
+
+    // Send the temporary code to our secure Vercel backend
+    const tokenResponse = await fetch("/api/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ code }),
+    });
+
+    if (!tokenResponse.ok) {
+      throw new Error("Could not exchange Discord authorization code.");
+    }
+
+    const { access_token } = await tokenResponse.json();
+
+    // Authenticate this Discord user inside the Activity
+    const auth = await discordSdk.commands.authenticate({
+      access_token,
+    });
+
+    if (!auth) {
+      throw new Error("Discord authentication failed.");
+    }
+
+    console.log("Discord user:", auth.user);
+
+    pill.textContent = `✓ ${auth.user.global_name || auth.user.username}`;
     pill.classList.add("connected");
+
+    setMessage(
+      `Signed in as ${auth.user.global_name || auth.user.username}`
+    );
   } catch (err) {
-    console.info("Discord SDK not available in normal browser preview:", err);
-    pill.textContent = "Browser Preview";
+    console.error("Discord authentication error:", err);
+
+    pill.textContent = "Discord Login Error";
+    setMessage("Could not sign into Discord. Please reopen the Activity.");
+  }
+}
   }
 }
 
