@@ -264,7 +264,7 @@ async function initDiscord() {
   }
 }
   }
-}
+
 
 render();
 initDiscord();
