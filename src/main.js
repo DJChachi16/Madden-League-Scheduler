@@ -226,12 +226,29 @@ async function initDiscord() {
 
     // Send the temporary code to our secure Vercel backend
    const tokenResponse = await fetch("/api/token", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({ code }),
-});
+     // Send the temporary code to our secure Vercel backend
+    const tokenResponse = await fetch("/api/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ code }),
+    });
+
+    const tokenData = await tokenResponse.json();
+
+    if (!tokenResponse.ok) {
+      throw new Error(
+        `Token exchange failed (${tokenResponse.status}): ${
+          tokenData.details ||
+          tokenData.error_description ||
+          tokenData.error ||
+          "Unknown error"
+        }`
+      );
+    }
+
+    const { access_token } = tokenData;
       method: "POST",
       headers: {
         "Content-Type": "application/json",
