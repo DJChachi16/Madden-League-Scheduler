@@ -233,11 +233,20 @@ async function initDiscord() {
       body: JSON.stringify({ code }),
     });
 
-    if (!tokenResponse.ok) {
-      throw new Error("Could not exchange Discord authorization code.");
-    }
+    const tokenData = await tokenResponse.json();
 
-    const { access_token } = await tokenResponse.json();
+if (!tokenResponse.ok) {
+  throw new Error(
+    `Token exchange failed (${tokenResponse.status}): ${
+      tokenData.details ||
+      tokenData.error_description ||
+      tokenData.error ||
+      "Unknown error"
+    }`
+  );
+}
+
+const { access_token } = tokenData;
 
     // Authenticate this Discord user inside the Activity
     const auth = await discordSdk.commands.authenticate({
