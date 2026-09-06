@@ -224,9 +224,10 @@ async function initDiscord() {
       scope: ["identify"],
     });
 
-    // Send the temporary code to our secure Vercel backend
-   const tokenResponse = await fetch("/api/token", {
-     // Send the temporary code to our secure Vercel backend
+       
+   
+
+      // Send the temporary code to our secure Vercel backend
     const tokenResponse = await fetch("/api/token", {
       method: "POST",
       headers: {
@@ -249,54 +250,6 @@ async function initDiscord() {
     }
 
     const { access_token } = tokenData;
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ code }),
-    });
-
-    const tokenData = await tokenResponse.json();
-
-if (!tokenResponse.ok) {
-  throw new Error(
-    `Token exchange failed (${tokenResponse.status}): ${
-      tokenData.details ||
-      tokenData.error_description ||
-      tokenData.error ||
-      "Unknown error"
-    }`
-  );
-}
-
-const { access_token } = tokenData;
-
-    // Authenticate this Discord user inside the Activity
-    const auth = await discordSdk.commands.authenticate({
-      access_token,
-    });
-
-    if (!auth) {
-      throw new Error("Discord authentication failed.");
-    }
-
-    console.log("Discord user:", auth.user);
-
-    pill.textContent = `✓ ${auth.user.global_name || auth.user.username}`;
-    pill.classList.add("connected");
-
-    setMessage(
-      `Signed in as ${auth.user.global_name || auth.user.username}`
-    );
-  } catch (err) {
-    console.error("Discord authentication error:", err);
-
-    pill.textContent = "Discord Login Error";
-    setMessage(`Discord error: ${err?.message || err}`);
-  }
-}
-  
-
-
-render();
 initDiscord();
+
+        // Authenticate this Discord user inside the Activity
