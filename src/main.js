@@ -263,7 +263,7 @@ async function initDiscord() {
     setMessage("Could not sign into Discord. Please reopen the Activity.");
   }
 }
-  }
+  
 
 
 render();
