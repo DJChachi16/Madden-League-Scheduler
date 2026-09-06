@@ -225,9 +225,13 @@ async function initDiscord() {
     });
 
     // Send the temporary code to our secure Vercel backend
-    const tokenResponse = await fetch(
-  `https://${clientId}.discordsays.com/api/token`,
-  {
+   const tokenResponse = await fetch("/api/token", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ code }),
+});
       method: "POST",
       headers: {
         "Content-Type": "application/json",
