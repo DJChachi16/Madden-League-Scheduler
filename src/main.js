@@ -260,7 +260,7 @@ async function initDiscord() {
     console.error("Discord authentication error:", err);
 
     pill.textContent = "Discord Login Error";
-    setMessage("Could not sign into Discord. Please reopen the Activity.");
+    setMessage(`Discord error: ${err?.message || err}`);
   }
 }
   
