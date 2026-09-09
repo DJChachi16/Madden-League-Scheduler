@@ -1,4 +1,3 @@
-
 import "./style.css";
 import { DiscordSDK } from "@discord/embedded-app-sdk";
 import { createClient } from "@supabase/supabase-js";
@@ -47,6 +46,7 @@ function esc(s = "") {
 function prettyTime(v) {
   const [h, m] = v.split(":").map(Number);
   const d = new Date(2000, 0, 1, h, m);
+
   return d.toLocaleTimeString([], {
     hour: "numeric",
     minute: "2-digit"
@@ -67,6 +67,7 @@ function render() {
             <p>Official league game scheduling hub</p>
           </div>
         </div>
+
         <div id="discord-pill" class="discord-pill">
           Connecting to Discord…
         </div>
@@ -82,13 +83,21 @@ function render() {
             <h2>
               ${esc(state.userTeam)} vs ${esc(state.opponentTeam)}
             </h2>
-            <span class="status">${esc(state.status)}</span>
+
+            <span class="status">
+              ${esc(state.status)}
+            </span>
           </div>
 
           <div class="teams">
             <div class="team">
-              <div class="abbr">${state.userAbbr}</div>
-              <div>${esc(state.userCoach)}</div>
+              <div class="abbr">
+                ${state.userAbbr}
+              </div>
+
+              <div>
+                ${esc(state.userCoach)}
+              </div>
             </div>
 
             <div class="versus">
@@ -97,14 +106,20 @@ function render() {
             </div>
 
             <div class="team">
-              <div class="abbr">${state.opponentAbbr}</div>
-              <div>${esc(state.opponentCoach)}</div>
+              <div class="abbr">
+                ${state.opponentAbbr}
+              </div>
+
+              <div>
+                ${esc(state.opponentCoach)}
+              </div>
             </div>
           </div>
 
           <form id="schedule-form" class="form">
             <label>
               Day
+
               <select id="day">
                 ${[
                   "Monday",
@@ -122,6 +137,7 @@ function render() {
 
             <label>
               Time
+
               <input
                 id="time"
                 type="time"
@@ -132,6 +148,7 @@ function render() {
 
             <label class="wide">
               Note to opponent
+
               <input
                 id="note"
                 maxlength="80"
@@ -218,6 +235,7 @@ function render() {
               <div class="eyebrow">
                 CONFIRMED GAMES
               </div>
+
               <h3>League Schedule Board</h3>
             </div>
 
@@ -229,9 +247,17 @@ function render() {
               .map(
                 g => `
                   <article class="game">
-                    <strong>${esc(g.matchup)}</strong>
-                    <span>${esc(g.when)}</span>
-                    <small>✅ Confirmed</small>
+                    <strong>
+                      ${esc(g.matchup)}
+                    </strong>
+
+                    <span>
+                      ${esc(g.when)}
+                    </span>
+
+                    <small>
+                      ✅ Confirmed
+                    </small>
                   </article>
                 `
               )
@@ -242,6 +268,7 @@ function render() {
         <section class="stats">
           <div>
             <span>Scheduled</span>
+
             <strong>
               ${
                 state.confirmed.length +
@@ -252,6 +279,7 @@ function render() {
 
           <div>
             <span>Waiting</span>
+
             <strong>
               ${
                 state.proposal &&
@@ -269,6 +297,7 @@ function render() {
 
           <div>
             <span>Deadline</span>
+
             <strong class="deadline">
               Sunday 11:59 PM
             </strong>
@@ -477,43 +506,86 @@ async function initDiscord() {
       );
     }
 
-    const displayName =
-      auth.user.global_name ||
-      auth.user.username;
+    console.log(
+      "Discord user:",
+      auth.user
+    );
 
-   console.log("Discord user:", auth.user);
+    const memberResponse =
+      await fetch("/api/member", {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json"
+        },
+        body: JSON.stringify({
+          discord_user_id: auth.user.id
+        })
+      });
 
-// Look up this Discord user in the OGML database
-const memberResponse = await fetch(
-  `/api/member?discord_user_id=${encodeURIComponent(auth.user.id)}`
-);
+    let memberData;
 
-const memberData = await memberResponse.json();
+    try {
+      memberData =
+        await memberResponse.json();
+    } catch {
+      throw new Error(
+        `Member endpoint returned an invalid response (${memberResponse.status}).`
+      );
+    }
 
-if (!memberResponse.ok) {
-  throw new Error(
-    memberData.error || "Could not find this user in the OGML league."
-  );
-}
+    if (!memberResponse.ok) {
+      throw new Error(
+        memberData.error ||
+        "Could not find this user in the OGML league."
+      );
+    }
 
-const member = memberData.member;
+    const member =
+      memberData.member;
 
-console.log("OGML member:", member);
+    console.log(
+      "OGML member:",
+      member
+    );
 
-pill.textContent = `✓ ${member.discord_username}`;
-pill.classList.add("connected");
+    state.userTeam =
+      member.team_name;
 
-setMessage(
-  `Signed in as ${member.discord_username} • ${member.team_name}`
-);
+    state.userAbbr =
+      member.team_abbr;
+
+    state.userCoach =
+      member.discord_username;
+
+    render();
+
+    const updatedPill =
+      document.querySelector("#discord-pill");
+
+    updatedPill.textContent =
+      `✓ ${member.discord_username}`;
+
+    updatedPill.classList.add(
+      "connected"
+    );
+
+    setMessage(
+      `Signed in as ${member.discord_username} • ${member.team_name}`
+    );
   } catch (err) {
     console.error(
       "Discord authentication error:",
       err
     );
 
-    pill.textContent =
-      "Discord Login Error";
+    const currentPill =
+      document.querySelector("#discord-pill");
+
+    if (currentPill) {
+      currentPill.textContent =
+        "Discord Login Error";
+    }
 
     setMessage(
       `Discord error: ${
