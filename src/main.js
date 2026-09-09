@@ -481,21 +481,31 @@ async function initDiscord() {
       auth.user.global_name ||
       auth.user.username;
 
-    console.log(
-      "Discord user:",
-      auth.user
-    );
+   console.log("Discord user:", auth.user);
 
-    pill.textContent =
-      `✓ ${displayName}`;
+// Look up this Discord user in the OGML database
+const memberResponse = await fetch(
+  `/api/member?discord_user_id=${encodeURIComponent(auth.user.id)}`
+);
 
-    pill.classList.add(
-      "connected"
-    );
+const memberData = await memberResponse.json();
 
-    setMessage(
-      `Signed in as ${displayName}`
-    );
+if (!memberResponse.ok) {
+  throw new Error(
+    memberData.error || "Could not find this user in the OGML league."
+  );
+}
+
+const member = memberData.member;
+
+console.log("OGML member:", member);
+
+pill.textContent = `✓ ${member.discord_username}`;
+pill.classList.add("connected");
+
+setMessage(
+  `Signed in as ${member.discord_username} • ${member.team_name}`
+);
   } catch (err) {
     console.error(
       "Discord authentication error:",
