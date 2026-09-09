@@ -1,12 +1,14 @@
 import { createClient } from "@supabase/supabase-js";
 
 export default async function handler(req, res) {
-  if (req.method !== "GET") {
-    return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== "POST") {
+    return res.status(405).json({
+      error: "Method not allowed"
+    });
   }
 
   try {
-    const { discord_user_id } = req.query;
+    const { discord_user_id } = req.body || {};
 
     if (!discord_user_id) {
       return res.status(400).json({
@@ -29,6 +31,8 @@ export default async function handler(req, res) {
       .single();
 
     if (error || !data) {
+      console.error("League member lookup failed:", error);
+
       return res.status(404).json({
         error: "League member not found"
       });
