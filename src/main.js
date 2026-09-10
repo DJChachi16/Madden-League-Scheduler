@@ -17,6 +17,8 @@ const supabase = createClient(
 let discordSdk = null;
 
 const state = {
+  discordUserId: null,
+matchupId: null,
   week: 1,
   userTeam: "Loading...",
   userAbbr: "---",
@@ -318,8 +320,10 @@ function render() {
 function attachEvents() {
   document
     .querySelector("#schedule-form")
-    .addEventListener("submit", e => {
+    .addEventListener("submit", async e => {
       e.preventDefault();
+
+      if (!state.discordUserId || !state.matchupId) return;
 
       state.proposal = {
         day: document.querySelector("#day").value,
@@ -328,6 +332,47 @@ function attachEvents() {
           .querySelector("#note")
           .value.trim()
       };
+
+      const dayNames = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday"
+];
+
+const now = new Date();
+const targetDay = dayNames.indexOf(state.proposal.day);
+const daysAhead = (targetDay - now.getDay() + 7) % 7;
+
+const proposedDate = new Date(now);
+proposedDate.setDate(now.getDate() + daysAhead);
+
+const [hours, minutes] = state.proposal.time.split(":").map(Number);
+proposedDate.setHours(hours, minutes, 0, 0);
+
+      const proposalResponse = await fetch("/api/proposal", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    discord_user_id: state.discordUserId,
+    matchup_id: state.matchupId,
+    proposed_time: proposedDate.toISOString(),
+    note: state.proposal.note
+  })
+});
+
+const proposalData = await proposalResponse.json();
+
+if (!proposalResponse.ok) {
+  throw new Error(
+    proposalData.error || "Could not save proposal"
+  );
+}
 
       state.status = "Pending opponent";
 
@@ -540,6 +585,8 @@ async function initDiscord() {
 
    const member = memberData.member;
 
+    state.discordUserId = auth.user.id;
+
 console.log("OGML member:", member);
 
 // Load this user's REAL Week 1 matchup
@@ -572,6 +619,8 @@ if (!matchupResponse.ok) {
 }
 
 const matchup = matchupData.matchup;
+
+    state.matchupId = matchup.id;
 
 console.log("OGML matchup:", matchup);
 
