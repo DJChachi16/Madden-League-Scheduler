@@ -323,7 +323,10 @@ function attachEvents() {
     .addEventListener("submit", async e => {
       e.preventDefault();
 
-      if (!state.discordUserId || !state.matchupId) return;
+      if (!state.discordUserId || !state.matchupId) {
+  alert(`Missing IDs — Discord: ${state.discordUserId} | Matchup: ${state.matchupId}`);
+  return;
+}
 
       state.proposal = {
         day: document.querySelector("#day").value,
