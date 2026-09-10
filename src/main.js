@@ -538,25 +538,61 @@ async function initDiscord() {
       );
     }
 
-    const member =
-      memberData.member;
+   const member = memberData.member;
 
-    console.log(
-      "OGML member:",
-      member
-    );
+console.log("OGML member:", member);
 
-    state.userTeam =
-      member.team_name;
+// Load this user's REAL Week 1 matchup
+const matchupResponse = await fetch("/api/matchup", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    discord_user_id: auth.user.id,
+    week: 1
+  })
+});
 
-    state.userAbbr =
-      member.team_abbr;
+let matchupData;
 
-    state.userCoach =
-      member.discord_username;
+try {
+  matchupData = await matchupResponse.json();
+} catch {
+  throw new Error(
+    `Matchup endpoint returned an invalid response (${matchupResponse.status}).`
+  );
+}
 
-    render();
+if (!matchupResponse.ok) {
+  throw new Error(
+    matchupData.error ||
+    `Could not load Week 1 matchup (${matchupResponse.status}).`
+  );
+}
 
+const matchup = matchupData.matchup;
+
+console.log("OGML matchup:", matchup);
+
+state.week = matchup.week;
+
+state.userTeam = matchup.user.team_name;
+state.userAbbr = matchup.user.team_abbr;
+state.userCoach = matchup.user.discord_username;
+
+state.opponentTeam = matchup.opponent.team_name;
+state.opponentAbbr = matchup.opponent.team_abbr;
+state.opponentCoach = matchup.opponent.discord_username;
+
+state.userIsAway = matchup.user_is_away;
+
+state.status =
+  matchup.status === "unscheduled"
+    ? "Not scheduled"
+    : matchup.status;
+
+render();
     const updatedPill =
       document.querySelector("#discord-pill");
 
