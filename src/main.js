@@ -17,20 +17,17 @@ const supabase = createClient(
 let discordSdk = null;
 
 const state = {
-  week: 4,
-  userTeam: "Miami Dolphins",
-  userAbbr: "MIA",
-  userCoach: "Brett",
-  opponentTeam: "Pittsburgh Steelers",
-  opponentAbbr: "PIT",
-  opponentCoach: "Ashley",
-  status: "Not scheduled",
+  week: 1,
+  userTeam: "Loading...",
+  userAbbr: "---",
+  userCoach: "Loading...",
+  opponentTeam: "Loading...",
+  opponentAbbr: "---",
+  opponentCoach: "Loading...",
+  userIsAway: true,
+  status: "Loading matchup...",
   proposal: null,
-  confirmed: [
-    { matchup: "Cowboys vs Eagles", when: "Tuesday • 7:30 PM ET" },
-    { matchup: "Lions vs Packers", when: "Wednesday • 9:00 PM ET" },
-    { matchup: "Ravens vs Bengals", when: "Thursday • 8:15 PM ET" }
-  ]
+  confirmed: []
 };
 
 function esc(s = "") {
